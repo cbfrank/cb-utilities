@@ -38,6 +38,11 @@
         }
 
         fetchDataOfPage(newPageIndex?: number, updateCurrentPageIndex?: boolean): $data.IPromise<TItem[]> {
+            if (typeof (this.source) === "undefined" || !this.source) {
+                var d = $.Deferred();
+                d.resolve([]);
+                return d.promise();
+            }
             var self = this;
             if (typeof (updateCurrentPageIndex) === "undefined") {
                 updateCurrentPageIndex = true;
