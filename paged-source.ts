@@ -1,4 +1,38 @@
-﻿module $CB {
+﻿module $CB.Data {
+    export class DatePropertyInformation {
+        name: string;
+        asLocal: boolean;
+    }
+
+    export class DbDatePropertyInformations {
+        private _datePropertyDict: any;
+
+        constructor() {
+            this._datePropertyDict = {};
+        }
+
+        registerDateProperty(entitySetName: string, information: DatePropertyInformation) {
+            var properties: DatePropertyInformation[] = this._datePropertyDict[entitySetName];
+            if (typeof (properties) === "undefined") {
+                properties = this._datePropertyDict[entitySetName] = [];
+            }
+            for (var i = 0; i < properties.length; i++) {
+                if (properties[i].name === information.name) {
+                    properties[i] = $.extend(properties[i], information);
+                    return;
+                }
+            }
+            properties.push(information);
+        }
+
+        getRegistedDateProperties(entitySetName: string): DatePropertyInformation[] {
+            var properties: DatePropertyInformation[] = this._datePropertyDict[entitySetName];
+            if (typeof (properties) === "undefined") {
+                return [];
+            }
+            return properties;
+        }
+    }
 
     export class PagedSource<T extends $data.Entity, TItem> {
         //reanonly
@@ -15,8 +49,11 @@
         //if the Queryable<T> (source) doesn't ok for items, then assign this property to provide additional process
         processItems: (rawItems: T[]) => $data.IPromise<TItem[]>;
 
+        dbDatePropertyInformations: DbDatePropertyInformations;
+
         constructor(public source: $data.Queryable<T>) {
             var self = this;
+            this.dbDatePropertyInformations = new DbDatePropertyInformations();
             this.totalCount = ko.observable(0);
             this.currentPageIndex = ko.observable(-1);
             this.itemsCountOnePage = ko.observable(20);
@@ -68,9 +105,36 @@
                 .skip(newPageIndex * this.itemsCountOnePage())
                 .take(this.itemsCountOnePage())
                 .toArray(tempResult);
+            if (self.dbDatePropertyInformations) {
+                result = result.then(() => {
+                    var allData = tempResult();
+                    var registedProperies: DatePropertyInformation[] = undefined;
+                    for (var i = 0; i < allData.length; i++) {
+                        var item: $data.EntityWrapper = allData[i];
+                        if (typeof (registedProperies) === "undefined") {
+                            var entitySetName: string = (<any>item.getEntity().getType()).name;
+                            registedProperies = self.dbDatePropertyInformations.getRegistedDateProperties(entitySetName);
+                            if (typeof (registedProperies) === "undefined") {
+                                registedProperies = [];
+                            }
+                        }
+                        for (var j = 0; j < registedProperies.length; j++) {
+                            var p = registedProperies[j];
+                            if (p.asLocal) {
+                                var d: Date = ko.unwrap(item[p.name]);
+                                if (typeof (d) !== "undefined") {
+                                    item[p.name](new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds()));
+                                }
+                            }
+                        }
+                    }
+                });
+            }
             if (typeof (self.processItems) !== "undefined") {
                 result = result
-                    .then(() => self.processItems(tempResult()))
+                    .then(() => {
+                        return self.processItems(tempResult());
+                    })
                     .then((items: TItem[]) => {
                         self.items(items);
                     });
