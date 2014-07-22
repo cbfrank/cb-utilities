@@ -34,6 +34,10 @@
         }
     }
 
+    export enum PagedSourceErrors {
+        FetchDataError
+    }
+
     export class PagedSource<T extends $data.Entity, TItem> {
         //reanonly
         totalCount: KnockoutObservable<number>;
@@ -48,6 +52,8 @@
 
         //if the Queryable<T> (source) doesn't ok for items, then assign this property to provide additional process
         processItems: (rawItems: T[]) => $data.IPromise<TItem[]>;
+
+        onError: (source: PagedSourceErrors, error) => void;
 
         dbDatePropertyInformations: DbDatePropertyInformations;
 
@@ -104,7 +110,12 @@
             var result = this.source
                 .skip(newPageIndex * this.itemsCountOnePage())
                 .take(this.itemsCountOnePage())
-                .toArray(tempResult);
+                .toArray(tempResult)
+                .fail((error) => {
+                    if (self.onError) {
+                        self.onError(PagedSourceErrors.FetchDataError, error)
+                    }
+                });
             if (self.dbDatePropertyInformations) {
                 result = result.then(() => {
                     var allData = tempResult();

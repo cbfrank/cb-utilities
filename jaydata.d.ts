@@ -307,6 +307,10 @@ declare module $data {
 
     export var Container: any;
     export var MemberTypes: any;
+    export var defaultErrorCallback: () => void;
+    export var Guard: {
+        raise(exception): void;
+    };
 }
 
 declare module Q {
