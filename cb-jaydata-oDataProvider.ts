@@ -222,8 +222,7 @@ module $CB.Data.JayData.OData {
                         self.dbContext.stateManager.reset();
                     })
                     .fail(() => {
-                        debugger;
-                        callBack.error();
+                        callBack.error.apply(this, arguments);
                     });
             } else {
                 callBack.success(0);
