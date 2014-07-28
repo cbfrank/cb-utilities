@@ -1,11 +1,11 @@
 declare module $data {
     interface IPromise<T> extends Object {
         then: {
-            (handler: (args: T) => void ): IPromise<any>;
+            (handler: (args: T) => void): IPromise<any>;
             (handler: (args: T) => any): IPromise<any>;
         };
         fail: {
-            (handler: (args: T) => void ): IPromise<any>;
+            (handler: (args: T) => void): IPromise<any>;
             (handler: (args: T) => any): IPromise<any>;
         };
         valueOf(): any;
@@ -17,8 +17,8 @@ declare module $data {
     }
 
     interface Event extends Object {
-        attach(eventHandler: (sender: any, event: any) => void ): void;
-        detach(eventHandler: () => void ): void;
+        attach(eventHandler: (sender: any, event: any) => void): void;
+        detach(eventHandler: () => void): void;
         fire(e: any, sender: any): void;
     }
 
@@ -38,7 +38,7 @@ declare module $data {
         asKoObservable(): Entity;
     }
 
-    export interface Queryable<T extends Entity> extends  Object {
+    export interface Queryable<T extends Entity> extends Object {
         filter(predicate: (it: T) => boolean): Queryable<T>;
         filter(predicate: (it: T) => boolean, thisArg: any): Queryable<T>;
         filter(predicate: string, thisArg: any): Queryable<T>;
@@ -46,16 +46,16 @@ declare module $data {
         map(projection: (it: T) => any): Queryable<any>;
 
         length(): $data.IPromise<Number>;
-        length(handler: (result: number) => void ): $data.IPromise<Number>;
+        length(handler: (result: number) => void): $data.IPromise<Number>;
         length(handler: { success?: (result: number) => void; error?: (result: any) => void; }): $data.IPromise<Number>;
 
-        forEach(handler: (it: any) => void ): $data.IPromise<T>;
+        forEach(handler: (it: any) => void): $data.IPromise<T>;
 
         toArray(): $data.IPromise<T[]>;
-        toArray(handler: (result: T[]) => void ): $data.IPromise<T[]>;
+        toArray(handler: (result: T[]) => void): $data.IPromise<T[]>;
         toArray(handler: { success?: (result: T[]) => void; error?: (result: any) => void; }): $data.IPromise<T[]>;
 
-        single(predicate: (it: T) => boolean, params?: any, handler?: (result: T) => void ): $data.IPromise<T>;
+        single(predicate: (it: T) => boolean, params?: any, handler?: (result: T) => void): $data.IPromise<T>;
         single(predicate: (it: T) => boolean, params?: any, handler?: { success?: (result: T) => void; error?: (result: any) => void; }): $data.IPromise<T>;
 
         take(amout: number): Queryable<T>;
@@ -65,20 +65,20 @@ declare module $data {
         orderBy(predicate: (it: any) => any): Queryable<T>;
         orderByDescending(predicate: (it: any) => any): Queryable<T>;
 
-        first(predicate: (it: T) => boolean, params?: any, handler?: (result: T) => void ): $data.IPromise<T>;
+        first(predicate: (it: T) => boolean, params?: any, handler?: (result: T) => void): $data.IPromise<T>;
         first(predicate: (it: T) => boolean, params?: any, handler?: { success?: (result: T) => void; error?: (result: any) => void; }): $data.IPromise<T>;
 
         include(selector: string): Queryable<T>;
 
         removeAll(): $data.IPromise<Number>;
-        removeAll(handler: (count: number) => void ): $data.IPromise<Number>;
+        removeAll(handler: (count: number) => void): $data.IPromise<Number>;
         removeAll(handler: { success?: (result: number) => void; error?: (result: any) => void; }): $data.IPromise<Number>;
     }
 
     export interface EntitySet<T extends Entity> extends Queryable<T> {
         tableName: string;
         collectionName: string;
-        
+
         add(item: T): T;
         add(initData: {}): T;
 
@@ -116,6 +116,7 @@ declare module $data {
         storageProvider: StorageProvider;
         stateManager: StateManager;
         getEntitySetFromElementType(entityType: Base): EntitySet<any>;
+        prepareRequest?: (r: any[]) => void;
     }
 
     export class Blob implements Object {
@@ -285,9 +286,9 @@ declare module $data {
     };
 
     export var ConcurrencyMode:
-    {
-        Fixed: string;
-        None: string;
+        {
+            Fixed: string;
+            None: string;
         };
 
     export class EntityWrapper {
