@@ -94,6 +94,8 @@ declare module $data {
         remove(item: {}): void;
 
         elementType: T;
+
+        createNew: new (item: {}) => T;
     }
 
     export interface EntityContext extends Object {
