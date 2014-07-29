@@ -35,7 +35,7 @@ declare module $data {
         isValid: boolean;
 
         context: EntityContext;
-        asKoObservable(): Entity;
+        asKoObservable<T extends Entity>(): KoEntityWrapper<T>;
     }
 
     export interface Queryable<T extends Entity> extends Object {
@@ -314,6 +314,10 @@ declare module $data {
     export var Guard: {
         raise(exception): void;
     };
+
+    interface KoEntityWrapper<T extends Entity> {
+        getEntity(): T;
+    }
 }
 
 declare module Q {
