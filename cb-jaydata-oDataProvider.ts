@@ -184,7 +184,7 @@ module $CB.Data.JayData.OData {
                                 }
                             }
                         } else {
-                            that.reload_fromResponse(reloadedItem, data, response);
+                            //that.reload_fromResponse(reloadedItem, data, response);
                         }
                         deferred.resolve(1);
                     } else {
