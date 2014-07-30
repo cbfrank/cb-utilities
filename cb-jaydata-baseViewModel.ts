@@ -27,7 +27,7 @@ module $CB.MVVM {
     }
 
     export module JayData {
-        var dbDatePropertyInformations: $CB.Data.DbDatePropertyInformations = new $CB.Data.DbDatePropertyInformations();
+        export var dbDatePropertyInformations: $CB.Data.JayData.DbDatePropertyInformations = new $CB.Data.JayData.DbDatePropertyInformations();
 
         export class BaseViewModelWithDbContext<TDbContext extends $data.EntityContext> extends BaseViewModel {
             database: TDbContext;
@@ -55,13 +55,13 @@ module $CB.MVVM {
         }
 
         export class BaseViewModelWithPagedData<TDbContext extends $data.EntityContext, T extends $data.Entity, TItem> extends BaseViewModelWithDbContext<TDbContext> {
-            oDataItems: $CB.Data.PagedSource<T, TItem>;
+            oDataItems: $CB.Data.JayData.PagedSource<T, TItem>;
             orders: KnockoutObservableArray<$CB.ko.binding.table.IOrderFieldInfo>;
 
             constructor() {
                 super();
                 var self = this;
-                this.oDataItems = new $CB.Data.PagedSource<T, TItem>(null);
+                this.oDataItems = new $CB.Data.JayData.PagedSource<T, TItem>(null);
                 this.oDataItems.dbDatePropertyInformations = dbDatePropertyInformations;
                 this.oDataItems.processItems = rawItems => this.processItems.call(self, rawItems);
                 this.orders = ko.observableArray([]);

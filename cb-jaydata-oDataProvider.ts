@@ -5,7 +5,7 @@
 import OR = OData.request;
 
 module $CB.Data.JayData.OData {
-    export function JayDataODataHack(dbContext: $data.EntityContext, dbDatePropertyInformations: $CB.Data.DbDatePropertyInformations) {
+    export function JayDataODataHack(dbContext: $data.EntityContext, dbDatePropertyInformations: $CB.Data.JayData.DbDatePropertyInformations) {
         var hacker = new ODataProviderHack(dbContext, dbDatePropertyInformations);
         var oDataProvider = <$data.ODataStorageProvider>dbContext.storageProvider;
         oDataProvider.saveChanges = (callBack, changedItems) => {
@@ -59,7 +59,7 @@ module $CB.Data.JayData.OData {
     }
 
     export class ODataProviderHack {
-        constructor(public dbContext: $data.EntityContext, public dbDatePropertyInformations: $CB.Data.DbDatePropertyInformations) {
+        constructor(public dbContext: $data.EntityContext, public dbDatePropertyInformations: $CB.Data.JayData.DbDatePropertyInformations) {
 
         }
 
@@ -71,7 +71,7 @@ module $CB.Data.JayData.OData {
             var self = this;
             var physicalData = (<any>this.dbContext)._storageModel.getStorageModel(item.data.getType()).PhysicalType.convertTo(item.data, convertedItems);
             var serializableObject = {}
-            physicalData.getType().memberDefinitions.asArray().forEach(function(memdef) {
+            physicalData.getType().memberDefinitions.asArray().forEach(function (memdef) {
                 if (memdef.kind == $data.MemberTypes.navProperty || memdef.kind == $data.MemberTypes.complexProperty || (memdef.kind == $data.MemberTypes.property && !memdef.notMapped)) {
                     if (typeof memdef.concurrencyMode === 'undefined') {
                         var typeName = $data.Container.resolveName(memdef.type);
@@ -142,7 +142,7 @@ module $CB.Data.JayData.OData {
             if (item.data.entityState !== $data.EntityState.Deleted) {
                 planItem = this.refineItem(this.dbContext, item);
             }
-            
+
             switch (item.data.entityState) {
                 case $data.EntityState.Unchanged:
                     break;
@@ -167,13 +167,13 @@ module $CB.Data.JayData.OData {
                 default:
                     Guard.raise(new Exception("Not supported Entity state"));
             }
-                    //batchRequests.push(request);
+            //batchRequests.push(request);
             var that = originalProvider;
             var deferred = $.Deferred();
             var promise = deferred.promise();
 
             var requestData = [
-                request, function(data, response) {
+                request, function (data, response) {
                     if (response.statusCode >= 200 && response.statusCode < 300) {
                         var reloadedItem = item.data;
                         if (response.statusCode == 204) {
@@ -191,13 +191,13 @@ module $CB.Data.JayData.OData {
                         deferred.reject(that.parseError(response));
                     }
 
-                }, function(e) {
+                }, function (e) {
                     deferred.reject(that.parseError(e));
                 }
             ];
 
             originalProvider.appendBasicAuth(requestData[0], originalProvider.providerConfiguration.user, originalProvider.providerConfiguration.password, originalProvider.providerConfiguration.withCredentials);
-            
+
             originalProvider.context.prepareRequest.call(originalProvider, requestData);
             OR.apply(originalProvider, requestData);
             return promise;
@@ -211,7 +211,7 @@ module $CB.Data.JayData.OData {
                 var promise = deferred.promise();
                 deferred.resolve();
                 for (var i = 0; i < entities.length; i++) {
-                    (function() {
+                    (function () {
                         var item = entities[i];
                         promise = promise.then(() => self._saveRest(item));
                     })();

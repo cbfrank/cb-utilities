@@ -1,4 +1,4 @@
-﻿module $CB.Data {
+﻿module $CB.Data.JayData {
     export class DatePropertyInformation {
         name: string;
         asLocal: boolean;
