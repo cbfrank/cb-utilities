@@ -162,7 +162,7 @@ module $CB.MVVM {
                 return true;
             }
 
-            dataItemVerify(dataItem: TItem, action: string, editorContent, editorModalDialog, dataItemProperty: string): boolean {
+            dataItemVerify(dataItem: TItem, action: string, editorContent?, editorModalDialog?, dataItemProperty?: string): boolean {
                 return true;
             }
 
