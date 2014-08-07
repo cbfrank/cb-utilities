@@ -104,7 +104,7 @@ module $CB.MVVM {
                 if (pageIndex < 0) {
                     pageIndex = 0;
                 }
-                return this.oDataItems.fetchDataOfPage(pageIndex).then(() => baseSource);
+                return this.oDataItems.fetchDataOfPage(pageIndex, true, true).then(() => baseSource);
             }
 
             newItem(): TItem {
@@ -155,7 +155,7 @@ module $CB.MVVM {
                 var self = this;
                 return this.databasePromise
                     .then(() => self.database.saveChanges())
-                    .then(() => self.oDataItems.fetchDataOfPage());
+                    .then(() => self.oDataItems.fetchDataOfPage(undefined, true, false));
             }
 
             beforeOrder(orderField, th): boolean {
@@ -173,7 +173,7 @@ module $CB.MVVM {
                         if (self.oDataItems.source == null) {
                             self.updateODataItemsSource(0);
                         } else {
-                            self.oDataItems.fetchDataOfPage();
+                            self.oDataItems.fetchDataOfPage(undefined, true, false);
                         }
                         return self.oDataItems.asyncPromise;
                     })

@@ -73,14 +73,14 @@
             this.asyncPromise = undefined;
 
             this.currentPageIndex.subscribe((newValue: number) => {
-                self.asyncPromise = self.fetchDataOfPage(newValue, false);
+                self.asyncPromise = self.fetchDataOfPage(newValue, false, false);
             });
             this.itemsCountOnePage.subscribe((newValue: number) => {
-                self.asyncPromise = self.fetchDataOfPage(undefined, false);
+                self.asyncPromise = self.fetchDataOfPage(undefined, false, false);
             });
         }
 
-        fetchDataOfPage(newPageIndex?: number, updateCurrentPageIndex?: boolean): $data.IPromise<TItem[]> {
+        fetchDataOfPage(newPageIndex?: number, updateTotalCount?: boolean, updateCurrentPageIndex?: boolean): $data.IPromise<TItem[]> {
             if (typeof (this.source) === "undefined" || !this.source) {
                 var d = $.Deferred();
                 d.resolve([]);
@@ -107,7 +107,15 @@
                 }
             }
             var tempResult = ko.observableArray([]);
-            var result = this.source
+
+            var result: $data.IPromise<any> = undefined;
+            if (updateTotalCount) {
+                result = this.source.length()
+                    .then((count: number) => self.totalCount(count))
+                    .fail(() => { throw "get count failed" });
+            }
+
+            var query = this.source
                 .skip(newPageIndex * this.itemsCountOnePage())
                 .take(this.itemsCountOnePage())
                 .toArray(tempResult)
@@ -116,6 +124,11 @@
                         self.onError(PagedSourceErrors.FetchDataError, error)
                     }
                 });
+            if (result) {
+                result = result.then(() => query);
+            } else {
+                result = query;
+            }
             if (self.dbDatePropertyInformations) {
                 result = result.then(() => {
                     var allData = tempResult();
