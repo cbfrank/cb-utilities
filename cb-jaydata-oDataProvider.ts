@@ -1,10 +1,30 @@
 ﻿declare module OData {
     export function request();
+
+    export var defaultHttpClient: {
+        callbackParameterName: string;
+        formatQueryString: string;
+        enableJsonpCallback: boolean;
+        request(request: { headers: any }, success, error): any;
+    };
 }
 
 import OR = OData.request;
+import OD = OData.defaultHttpClient;
 
 module $CB.Data.JayData.OData {
+    export function ODataHack(prepareRequest: (request: { headers: any }) => void) {
+        if (OD) {
+            var oldODRequest = OD.request;
+            OD.request = (request: { headers: any }, success, error) => {
+                if (prepareRequest) {
+                    prepareRequest(request);
+                }
+                return oldODRequest(request, success, error);
+            };
+        }
+    }
+
     export function JayDataODataHack(dbContext: $data.EntityContext, dbDatePropertyInformations: $CB.Data.JayData.DbDatePropertyInformations) {
         var hacker = new ODataProviderHack(dbContext, dbDatePropertyInformations);
         var oDataProvider = <$data.ODataStorageProvider>dbContext.storageProvider;
