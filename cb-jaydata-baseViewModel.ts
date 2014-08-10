@@ -170,12 +170,13 @@ module $CB.MVVM {
                 var self = this;
                 return this.databasePromise
                     .then(() => {
+                        var result: $data.IPromise<any>;
                         if (self.oDataItems.source == null) {
-                            self.updateODataItemsSource(0);
+                            result = self.updateODataItemsSource(0);
                         } else {
-                            self.oDataItems.fetchDataOfPage(undefined, true, false);
+                            result = self.oDataItems.fetchDataOfPage(undefined, true, false);
                         }
-                        return self.oDataItems.asyncPromise;
+                        return result;
                     })
                     .then(() => super.onActive(continueCallback));
             }

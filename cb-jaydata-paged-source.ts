@@ -47,8 +47,9 @@
         itemsCountOnePage: KnockoutObservable<number>;
         items: KnockoutObservableArray<TItem>;
 
-        //for any operation that will use the action such as ajax, should use it to konw if the action is finished or not
-        asyncPromise: $data.IPromise<any>;
+        //for any operation that will cause observable changed and will use the action such as ajax, should use it to konw if the action is finished or not
+        //change to only update asyncPromiseForObservableNotify when there is async in observable notify. for the function such as fetchDataOfPage or updateTotalCount, they won't update asyncPromiseForObservableNotify, they just return promise
+        asyncPromiseForObservableNotify: $data.IPromise<any>;
 
         //if the Queryable<T> (source) doesn't ok for items, then assign this property to provide additional process
         processItems: (rawItems: T[]) => $data.IPromise<TItem[]>;
@@ -70,14 +71,26 @@
                 return Math.ceil(self.totalCount() / self.itemsCountOnePage());
             }, this);
             this.items = ko.observableArray([]);
-            this.asyncPromise = undefined;
+            this.asyncPromiseForObservableNotify = undefined;
 
             this.currentPageIndex.subscribe((newValue: number) => {
-                self.asyncPromise = self.fetchDataOfPage(newValue, false, false);
+                self.asyncPromiseForObservableNotify = self.fetchDataOfPage(newValue, false, false);
             });
             this.itemsCountOnePage.subscribe((newValue: number) => {
-                self.asyncPromise = self.fetchDataOfPage(undefined, false, false);
+                self.asyncPromiseForObservableNotify = self.fetchDataOfPage(undefined, false, false);
             });
+        }
+
+        private updateTotalPageCount(): $data.IPromise<number> {
+            if (typeof (this.source) === "undefined" || !this.source) {
+                var d = $.Deferred();
+                d.resolve(0);
+                return d.promise();
+            }
+            var self = this;
+            return this.source.length()
+                .then((count: number) => self.totalCount(count))
+                .fail(() => { throw "get count failed" });
         }
 
         fetchDataOfPage(newPageIndex?: number, updateTotalCount?: boolean, updateCurrentPageIndex?: boolean): $data.IPromise<TItem[]> {
@@ -98,8 +111,16 @@
             }
             if (updateCurrentPageIndex) {
                 if (newPageIndex != this.currentPageIndex()) {
-                    this.currentPageIndex(newPageIndex); //will trigger the fetchDataOfPage again
-                    return this.asyncPromise;
+                    if (updateCurrentPageIndex) {
+                        return this.updateTotalPageCount()
+                            .then(() => {
+                                self.currentPageIndex(newPageIndex); //will trigger the fetchDataOfPage again
+                                return self.asyncPromiseForObservableNotify;
+                            });
+                    } else {
+                        this.currentPageIndex(newPageIndex); //will trigger the fetchDataOfPage again
+                        return this.asyncPromiseForObservableNotify;
+                    }
                 }
             } else {
                 if (newPageIndex != this.currentPageIndex()) {
@@ -110,9 +131,7 @@
 
             var result: $data.IPromise<any> = undefined;
             if (updateTotalCount) {
-                result = this.source.length()
-                    .then((count: number) => self.totalCount(count))
-                    .fail(() => { throw "get count failed" });
+                result = this.updateTotalPageCount();
             }
 
             var query = this.source
@@ -166,7 +185,7 @@
                 self.items(tempResult());
             }
 
-            this.asyncPromise = result;
+            //this.asyncPromiseForObservableNotify = result;
             return <any>result;
         }
     }
