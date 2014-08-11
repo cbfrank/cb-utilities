@@ -56,7 +56,7 @@ module $CB.MVVM {
 
         export class BaseViewModelWithPagedData<TDbContext extends $data.EntityContext, T extends $data.Entity, TItem> extends BaseViewModelWithDbContext<TDbContext> {
             oDataItems: $CB.Data.JayData.PagedSource<T, TItem>;
-            orders: KnockoutObservableArray<$CB.ko.binding.table.IOrderFieldInfo>;
+            orders: KnockoutObservableArray<$CB.Data.Common.IOrderFieldInfo>;
 
             constructor() {
                 super();
