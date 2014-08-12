@@ -153,7 +153,11 @@ module $CB.MVVM {
 
             saveChanges(): $data.IPromise<number> {
                 var self = this;
-                return this.databasePromise
+                var promise = $.Deferred();
+                //dely 100ms, it seems that jaydata can't catch the changes to the entity if we user table inline edit and click save button without make the editor disappear first
+                setTimeout(() => { promise.resolve() }, 100);
+                return promise
+                    .then(() => self.databasePromise)
                     .then(() => self.database.saveChanges())
                     .then(() => self.oDataItems.fetchDataOfPage(undefined, true, false));
             }
