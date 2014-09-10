@@ -57,6 +57,7 @@ module $CB.MVVM {
         export class BaseViewModelWithPagedData<TDbContext extends $data.EntityContext, T extends $data.Entity, TItem> extends BaseViewModelWithDbContext<TDbContext> {
             oDataItems: $CB.Data.JayData.PagedSource<T, TItem>;
             orders: KnockoutObservableArray<$CB.Data.Common.IOrderFieldInfo>;
+            alwaysFetchAfterSave: boolean; //true, will do a fetch even the save fail, false will do a fetch only after save successfully default is false
 
             constructor() {
                 super();
@@ -66,6 +67,7 @@ module $CB.MVVM {
                 this.oDataItems.processItems = rawItems => this.processItems.call(self, rawItems);
                 this.orders = ko.observableArray([]);
                 this.orders.subscribe(newValue => self.updateODataItemsSource.call(self, 0));
+                this.alwaysFetchAfterSave = false;
             }
 
             processItems(rawItems: T[]): $data.IPromise<any[]> {
@@ -156,10 +158,15 @@ module $CB.MVVM {
                 var promise = $.Deferred();
                 //dely 300ms, it seems that jaydata can't catch the changes to the entity if we user table inline edit and click save button without make the editor disappear first
                 setTimeout(() => { promise.resolve() }, 300);
-                return promise
+                var promiseResult = promise
                     .then(() => self.databasePromise)
-                    .then(() => self.database.saveChanges())
-                    .then(() => self.oDataItems.fetchDataOfPage(undefined, true, false));
+                    .then(() => self.database.saveChanges());
+                if (self.alwaysFetchAfterSave) {
+                    promiseResult = promiseResult.always(() => self.oDataItems.fetchDataOfPage(undefined, true, false));
+                } else {
+                    promiseResult = <any> promiseResult.then(() => self.oDataItems.fetchDataOfPage(undefined, true, false));
+                }
+                return promiseResult;
             }
 
             beforeOrder(orderField, th): boolean {
