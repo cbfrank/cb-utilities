@@ -50,6 +50,7 @@
         //for any operation that will cause observable changed and will use the action such as ajax, should use it to konw if the action is finished or not
         //change to only update asyncPromiseForObservableNotify when there is async in observable notify. for the function such as fetchDataOfPage or updateTotalCount, they won't update asyncPromiseForObservableNotify, they just return promise
         asyncPromiseForObservableNotify: $data.IPromise<any>;
+        private stopFetchWhenPageIndexCountChanged: boolean;
 
         //if the Queryable<T> (source) doesn't ok for items, then assign this property to provide additional process
         processItems: (rawItems: T[]) => $data.IPromise<TItem[]>;
@@ -60,6 +61,7 @@
 
         constructor(public source: $data.Queryable<T>) {
             var self = this;
+            this.stopFetchWhenPageIndexCountChanged = false;
             this.dbDatePropertyInformations = new DbDatePropertyInformations();
             this.totalCount = ko.observable(0);
             this.currentPageIndex = ko.observable(-1);
@@ -74,9 +76,15 @@
             this.asyncPromiseForObservableNotify = undefined;
 
             this.currentPageIndex.subscribe((newValue: number) => {
+                if (self.stopFetchWhenPageIndexCountChanged) {
+                    return;
+                }
                 self.asyncPromiseForObservableNotify = self.fetchDataOfPage(newValue, false, false);
             });
             this.itemsCountOnePage.subscribe((newValue: number) => {
+                if (self.stopFetchWhenPageIndexCountChanged) {
+                    return;
+                }
                 self.asyncPromiseForObservableNotify = self.fetchDataOfPage(undefined, false, false);
             });
         }
@@ -111,15 +119,19 @@
             }
             if (updateCurrentPageIndex) {
                 if (newPageIndex != this.currentPageIndex()) {
-                    if (updateCurrentPageIndex) {
+                    if (updateTotalCount) {
                         return this.updateTotalPageCount()
                             .then(() => {
-                                self.currentPageIndex(newPageIndex); //will trigger the fetchDataOfPage again
-                                return self.asyncPromiseForObservableNotify;
+                                self.stopFetchWhenPageIndexCountChanged = true;
+                                self.currentPageIndex(newPageIndex);
+                                self.stopFetchWhenPageIndexCountChanged = false;
+                                return self.fetchDataOfPage(newPageIndex, false, false);
                             });
                     } else {
-                        this.currentPageIndex(newPageIndex); //will trigger the fetchDataOfPage again
-                        return this.asyncPromiseForObservableNotify;
+                        self.stopFetchWhenPageIndexCountChanged = true;
+                        this.currentPageIndex(newPageIndex);
+                        self.stopFetchWhenPageIndexCountChanged = false;
+                        return self.fetchDataOfPage(newPageIndex, false, false);
                     }
                 }
             } else {
