@@ -139,7 +139,14 @@ module $CB.MVVM {
                         var track = this.database.stateManager.trackedEntities;
                         for (var i = 0; i < track.length; i++) {
                             if (track[i].data === check) {
-                                track.splice(i, 1);
+                                //if we have several items, some saved successfully, and some failed, then for the default, won't do a new fetch
+                                //and the saved successfully item will change them status to unchanged, but the item will reamin as New
+                                //and if user delete it from table UI, these item should be remove in database so that they can be deleted from database(because they have already saved)
+                                if (track[i].data.entityState === $data.EntityState.Unchanged) {
+                                    this.database.remove(<any>item);
+                                } else {
+                                    track.splice(i, 1);
+                                }
                                 found = true;
                                 break;
                             }
@@ -147,6 +154,7 @@ module $CB.MVVM {
                         if (!found) {
                             throw "Make sure you set tableCRUD binding autoConvertNewItemAsKoObservable to false";
                         }
+
                     } else {
                         this.database.remove(<any>item);
                     }

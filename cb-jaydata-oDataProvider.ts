@@ -144,6 +144,7 @@ module $CB.Data.JayData.OData {
         }
 
         _saveRest(item: $data.TrackedEntity) {
+            var self = this;
             var request;
             var originalProvider: any = this.oDataStorageProvider();
             request = {
@@ -206,6 +207,19 @@ module $CB.Data.JayData.OData {
                         } else {
                             //that.reload_fromResponse(reloadedItem, data, response);
                         }
+                        if (data) { //for delete, the data is undefined
+                            for (var p in data) {
+                                if (typeof (item.data[p]) !== "undefined") {
+                                    item.data[p] = data[p];
+                                }
+                            }
+                        }
+                        if (item.data.entityState == $data.EntityState.Deleted) {
+                            item.entitySet.detach(item.data);
+                        } else {
+                            item.data.entityState = $data.EntityState.Unchanged;
+                        }
+
                         deferred.resolve(1);
                     } else {
                         deferred.reject(that.parseError(response));
