@@ -205,15 +205,9 @@ module $CB.Data.JayData.OData {
                                 }
                             }
                         } else {
-                            //that.reload_fromResponse(reloadedItem, data, response);
+                            (<any>self.dbContext.storageProvider).reload_fromResponse(reloadedItem, data, response);
                         }
-                        if (data) { //for delete, the data is undefined
-                            for (var p in data) {
-                                if (typeof (item.data[p]) !== "undefined") {
-                                    item.data[p] = data[p];
-                                }
-                            }
-                        }
+
                         if (item.data.entityState == $data.EntityState.Deleted) {
                             item.entitySet.detach(item.data);
                         } else {
@@ -247,6 +241,16 @@ module $CB.Data.JayData.OData {
                 for (var i = 0; i < entities.length; i++) {
                     (function () {
                         var item = entities[i];
+                        if (item.data.entityState == $data.EntityState.Unchanged) {
+                            return;
+                        }
+                        if (item.data.entityState != $data.EntityState.Deleted) { //for deleted, _changedProperties is undefined, but we need save it
+                            var item_data: any = item.data;
+                            if ((!item_data._changedProperties) || item_data._changedProperties.length <= 0 || (item_data._changedProperties.length == 1 && item_data._changedProperties[0].name == "ValidationErrors")) {
+                                //not changed, so return
+                                return;
+                            }
+                        }
                         promise = promise.then(() => self._saveRest(item));
                     })();
                 }
