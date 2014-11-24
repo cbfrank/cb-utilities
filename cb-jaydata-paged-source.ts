@@ -177,7 +177,7 @@
                             var p = registedProperies[j];
                             if (p.asLocal) {
                                 var d: Date = ko.unwrap(item[p.name]);
-                                if (typeof (d) !== "undefined") {
+                                if (typeof (d) !== "undefined" && d != null) {
                                     item[p.name](new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds()));
                                 }
                             }
