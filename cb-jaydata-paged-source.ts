@@ -146,9 +146,13 @@
                 result = this.updateTotalPageCount();
             }
 
-            var query = this.source
-                .skip(newPageIndex * this.itemsCountOnePage())
-                .take(this.itemsCountOnePage())
+            var tempSource = this.source;
+            if (this.itemsCountOnePage() > 0) {
+                tempSource = tempSource
+                    .skip(newPageIndex * this.itemsCountOnePage())
+                    .take(this.itemsCountOnePage());
+            }
+            var query = tempSource
                 .toArray(tempResult)
                 .fail((error) => {
                     if (self.onError) {
@@ -194,7 +198,11 @@
                         self.items(items);
                     });
             } else {
-                self.items(tempResult());
+                result = result
+                    .then(() => {
+                        self.items(tempResult());
+                        return self.items();
+                    });
             }
 
             //this.asyncPromiseForObservableNotify = result;
