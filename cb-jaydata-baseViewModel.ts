@@ -16,13 +16,13 @@ module $CB.MVVM {
         }
 
 
-        onActive(continueCallback: () => void): $data.IPromise<any> {
-            continueCallback();
+        onActive(continueCallback: (continueActive?: boolean) => void): $data.IPromise<any> {
+            continueCallback(true);
             return $.Deferred().resolve();
         }
 
-        onInactive(continueCallback: () => void): void {
-            continueCallback();
+        onInactive(continueCallback: (cancel?: boolean) => void): void {
+            continueCallback(false);
         }
     }
 
@@ -185,7 +185,7 @@ module $CB.MVVM {
                 return true;
             }
 
-            onActive(continueCallback: () => void): $data.IPromise<any> {
+            onActive(continueCallback: (continueActive?: boolean) => void): $data.IPromise<any> {
                 var self = this;
                 return this.databasePromise
                     .then(() => {
