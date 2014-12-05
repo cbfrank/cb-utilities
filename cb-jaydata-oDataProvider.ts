@@ -110,7 +110,7 @@ module $CB.Data.JayData.OData {
             if (this.dbDatePropertyInformations) {
                 var properties = this.dbDatePropertyInformations.getRegistedDateProperties((<any>itemType).name);
                 for (var pIndex = 0; pIndex < properties.length; pIndex++) {
-                    if (properties[pIndex].asLocal && typeof (plainItem[properties[pIndex].name]) !== "undefined") {
+                    if (properties[pIndex].asLocal && typeof (plainItem[properties[pIndex].name]) !== "undefined" && plainItem[properties[pIndex].name] != null) {
                         var d = new Date(Date.parse(plainItem[properties[pIndex].name]));
                         var d2 = new Date();
                         d2.setUTCFullYear(d.getFullYear());
@@ -131,7 +131,7 @@ module $CB.Data.JayData.OData {
             for (var i = 0; i < sModel._Associations.length; i++) {
                 var nav = sModel._Associations[i];
                 //must have data and is array
-                if (typeof (plainItem[nav._FromPropertyName]) === "undefined" || !$.isArray(plainItem[nav._FromPropertyName])) {
+                if (typeof (plainItem[nav._FromPropertyName]) === "undefined" || plainItem[nav._FromPropertyName] == null || !$.isArray(plainItem[nav._FromPropertyName])) {
                     continue;
                 }
                 var tmpNavValues = [];
