@@ -38,6 +38,10 @@
         FetchDataError
     }
 
+    export interface IPagedSourceOption {
+        onBeforeFetch?: () => JQueryPromise<boolean>;
+    }
+
     export class PagedSource<T extends $data.Entity, TItem> {
         //reanonly
         totalCount: KnockoutObservable<number>;
@@ -58,9 +62,11 @@
         onError: (source: PagedSourceErrors, error) => void;
 
         dbDatePropertyInformations: DbDatePropertyInformations;
+        option: IPagedSourceOption;
 
-        constructor(public source: $data.Queryable<T>) {
+        constructor(public source: $data.Queryable<T>, option?: IPagedSourceOption) {
             var self = this;
+            this.option = option;
             this.stopFetchWhenPageIndexCountChanged = false;
             this.dbDatePropertyInformations = new DbDatePropertyInformations();
             this.totalCount = ko.observable(0);
@@ -102,6 +108,28 @@
         }
 
         fetchDataOfPage(newPageIndex?: number, updateTotalCount?: boolean, updateCurrentPageIndex?: boolean): $data.IPromise<TItem[]> {
+            var self = this;
+            if (this.option && this.option.onBeforeFetch) {
+                var result = this.option.onBeforeFetch();
+                if (typeof (result) == "undefined" || result == null || (typeof (result) === "boolean" && result)) {
+                    return this._fetchDataOfPage(newPageIndex, updateTotalCount, updateCurrentPageIndex);
+                } else {
+                    return result.then((stillContinue: boolean) => {
+                        if (stillContinue) {
+                            return self._fetchDataOfPage(newPageIndex, updateTotalCount, updateCurrentPageIndex);
+                        } else {
+                            var d = $.Deferred();
+                            d.resolve([]);
+                            return d.promise();
+                        }
+                    });
+                }
+            } else {
+                return this._fetchDataOfPage(newPageIndex, updateTotalCount, updateCurrentPageIndex);
+            }
+        }
+
+        private _fetchDataOfPage(newPageIndex?: number, updateTotalCount?: boolean, updateCurrentPageIndex?: boolean): $data.IPromise<TItem[]> {
             if (typeof (this.source) === "undefined" || !this.source) {
                 var d = $.Deferred();
                 d.resolve([]);
