@@ -256,12 +256,12 @@ module $CB.Data.JayData.OData {
                 }
                 promise
                     .done(() => {
-                        callBack.success(entities.length);
-                        self.dbContext.stateManager.reset();
-                    })
-                    .fail(() => {
-                        callBack.error.apply(this, arguments);
-                    });
+                    callBack.success(entities.length);
+                    self.dbContext.stateManager.reset();
+                })
+                    .fail((...args) => {
+                    callBack.error.apply(this, args);
+                });
             } else {
                 callBack.success(0);
             }
